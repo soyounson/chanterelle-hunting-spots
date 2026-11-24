@@ -4,6 +4,8 @@ Where and when golden chanterelles (*Cantharellus*) turn up in Europe, the USA a
 
 **Live page:** https://soyounson.github.io/chanterelle-hunting-spots/
 
+[![Chanterelle hunting spots: map of Europe with mushrooms sized by GBIF records](docs/screenshots/map-dark.jpg)](https://soyounson.github.io/chanterelle-hunting-spots/)
+
 ## What the page shows
 
 - **Map:** one mushroom per city, sized by the GBIF chanterelle records in the forests around it. Pick a month or season to see how the picture shifts. Blue bands are rain contours for the same period.
@@ -35,5 +37,9 @@ Records show where people found and logged chanterelles, so busy areas also refl
 - Cities: GeoNames via the `all-the-cities` package
 - Map: Natural Earth and US Census outlines (world-atlas, us-atlas), D3
 - Charts: Apache ECharts
+
+## License
+
+Code is MIT and the original text, maps and screenshots are CC BY 4.0 (see [LICENSE](LICENSE)). GBIF records and the other sources above keep their own terms.
 
 Check with a local expert before eating anything you pick.
