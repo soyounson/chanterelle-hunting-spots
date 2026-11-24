@@ -4,7 +4,9 @@ Where and when golden chanterelles (*Cantharellus*) turn up in Europe, the USA a
 
 **Live page:** https://soyounson.github.io/chanterelle-hunting-spots/
 
-[![Chanterelle hunting spots: map of Europe with mushrooms sized by GBIF records](docs/screenshots/map-dark.jpg)](https://soyounson.github.io/chanterelle-hunting-spots/)
+| Europe, dark mode | USA, light mode |
+|---|---|
+| [![Map of Europe with mushrooms sized by GBIF chanterelle records, dark mode](docs/screenshots/map-dark.jpg)](https://soyounson.github.io/chanterelle-hunting-spots/) | [![Map of the USA with mushrooms sized by GBIF chanterelle records and rain contours, light mode](docs/screenshots/map-usa-light.jpg)](https://soyounson.github.io/chanterelle-hunting-spots/) |
 
 ## What the page shows
 
@@ -12,6 +14,10 @@ Where and when golden chanterelles (*Cantharellus*) turn up in Europe, the USA a
 - **Harvest outlook:** a fox fills a net bag with the records of the spot or city you tap. The bag is full in the busiest month and empty when nothing is logged.
 - **Climate × Fruiting:** monthly rain and temperature normals for each spot, with the month's records on top.
 - **Model plan:** the next step, predicting this year's chance of chanterelles from the previous months' weather.
+
+| Harvest outlook | Climate × Fruiting |
+|---|---|
+| [![A fox fills a net bag with September records for Småland, Sweden](docs/screenshots/harvest.jpg)](https://soyounson.github.io/chanterelle-hunting-spots/#harvest) | [![Monthly rain bars and temperature line for Växjö, with mushroom icons sized by GBIF records](docs/screenshots/climate.jpg)](https://soyounson.github.io/chanterelle-hunting-spots/#climate) |
 
 ## How the numbers are made
 
