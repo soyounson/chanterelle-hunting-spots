@@ -333,7 +333,7 @@ footer a,.panel a{color:var(--blue)}
 <div class="how">
   <div><b>City mushrooms</b><span>Chanterelle sightings from GBIF were counted in squares of about 110 km. Each square's count goes to the biggest nearby city (40,000+ people). A big mushroom means many sightings in the forests around that city. Estimated.</span></div>
   <div><b>Rain contours</b><span>Monthly rain normals from 86 weather stations (mostly 1991–2020), summed for the chosen month or season and blended between stations (weighted by distance, about 180 km reach). Areas more than 450 km from a station stay blank. Estimated.</span></div>
-  <div><b>Fox's bag</b><span>The tag is the real number of sightings logged in that month. How full the bag looks compares that month with the place's busiest month, so a full bag means "best month of the year here".</span></div>
+  <div><b>Fox's bag</b><span>The tag is the city's share of all sightings in its country that month (for a whole country, its share of the region). Full bag at 50% or more, half a bag from 20%. With no country picked, the bag compares the month with the busiest month.</span></div>
 </div>
 
 <div class="eyebrow" id="harvest">Harvest outlook</div>
@@ -391,7 +391,7 @@ footer a,.panel a{color:var(--blue)}
     <div class="hvStat" id="hvStat">—</div>
     <div class="months" id="hvMonths"></div>
     <div class="hvCtl"><button class="pbtn" id="hvPlay" aria-label="Play months"></button><span class="note">Tap a month here or in the chart below.</span></div>
-    <p class="note" style="margin:8px 0 0">The bag follows how many records people logged, not how many kilograms grow. Busy months mean more finds, and also more people looking.</p>
+    <p class="note" style="margin:8px 0 0">The bag shows this city's share of all sightings logged in its country that month (a country's share of Europe, the USA or Canada when you pick a whole country). It counts records people logged, not kilograms.</p>
   </div>
 </div>
 
@@ -513,6 +513,38 @@ document.getElementById('themeBtn').onclick=()=>{mode = mode==='auto'?'light':mo
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{ if(mode==='auto'){ drawChart(); drawIcons(false); } });
 const tok=n=>getComputedStyle(root).getPropertyValue(n).trim();
 
+/* simplified country flags, drawn inline (viewBox 0 0 30 20) so they work offline and on every OS */
+const FLAGS={
+  h:{AT:['#c8102e','#fff','#c8102e'],NL:['#ae1c28','#fff','#21468b'],DE:['#000','#dd0000','#ffce00'],RU:['#fff','#0039a6','#d52b1e'],LU:['#ea141d','#fff','#51addf'],
+     EE:['#0072ce','#000','#fff'],LT:['#fdb913','#006a44','#c1272d'],HU:['#ce2939','#fff','#477050'],BG:['#fff','#00966e','#d62612'],UA:['#0057b7','#ffd700'],
+     PL:['#fff','#dc143c'],SI:['#fff','#005ce6','#ed1c24'],SK:['#fff','#0b4ea2','#ee1c25'],RS:['#c6363c','#0c4076','#fff'],HR:['#ff0000','#fff','#171796']},
+  hr:{LV:[['#9e3039',2],['#fff',1],['#9e3039',2]],BY:[['#c8313e',2],['#4aa657',1]],ES:[['#aa151b',1],['#f1bf00',2],['#aa151b',1]]},
+  v:{FR:['#0055a4','#fff','#ef4135'],BE:['#000','#fdda24','#ef3340'],IT:['#009246','#fff','#ce2b37'],IE:['#169b62','#fff','#ff883e'],RO:['#002b7f','#fcd116','#ce1126'],MD:['#0046ae','#ffd200','#cc092f']},
+  n:{SE:['#006aa7','#fecc00'],DK:['#c8102e','#fff'],FI:['#fff','#002f6c'],NO:['#ba0c2f','#fff','#00205b'],IS:['#02529c','#fff','#dc1e35']}
+};
+function flagSVG(cc){
+  let s='';
+  if(FLAGS.h[cc]){const c=FLAGS.h[cc],h=20/c.length;c.forEach((col,i)=>s+=`<rect y="${i*h}" width="30" height="${h+.05}" fill="${col}"/>`);}
+  else if(FLAGS.hr[cc]){const c=FLAGS.hr[cc],tot=c.reduce((a,x)=>a+x[1],0);let y=0;c.forEach(([col,w])=>{const h=20*w/tot;s+=`<rect y="${y}" width="30" height="${h+.05}" fill="${col}"/>`;y+=h;});}
+  else if(FLAGS.v[cc]){FLAGS.v[cc].forEach((col,i)=>s+=`<rect x="${i*10}" width="10.05" height="20" fill="${col}"/>`);}
+  else if(FLAGS.n[cc]){const [bg,c1,c2]=FLAGS.n[cc];s=`<rect width="30" height="20" fill="${bg}"/><rect x="8" width="4" height="20" fill="${c1}"/><rect y="8" width="30" height="4" fill="${c1}"/>`+(c2?`<rect x="9" width="2" height="20" fill="${c2}"/><rect y="9" width="30" height="2" fill="${c2}"/>`:'');}
+  else switch(cc){
+    case 'PT': s='<rect width="30" height="20" fill="#ff0000"/><rect width="12" height="20" fill="#006600"/><circle cx="12" cy="10" r="3.6" fill="#ffe900"/><circle cx="12" cy="10" r="2.2" fill="#ff0000"/>';break;
+    case 'CH': s='<rect width="30" height="20" fill="#da291c"/><rect x="13" y="4" width="4" height="12" fill="#fff"/><rect x="9" y="8" width="12" height="4" fill="#fff"/>';break;
+    case 'GR': s='<rect width="30" height="20" fill="#0d5eaf"/>'+[1,3,5,7].map(i=>`<rect y="${i*20/9}" width="30" height="${20/9}" fill="#fff"/>`).join('')+'<rect width="11.1" height="11.1" fill="#0d5eaf"/><rect x="4.44" width="2.22" height="11.1" fill="#fff"/><rect y="4.44" width="11.1" height="2.22" fill="#fff"/>';break;
+    case 'GB': s='<rect width="30" height="20" fill="#012169"/><path d="M0 0L30 20M30 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0L30 20M30 0L0 20" stroke="#c8102e" stroke-width="1.4"/><path d="M15 0V20M0 10H30" stroke="#fff" stroke-width="6"/><path d="M15 0V20M0 10H30" stroke="#c8102e" stroke-width="3.4"/>';break;
+    case 'US': s='<rect width="30" height="20" fill="#fff"/>'+[0,2,4,6,8,10,12].map(i=>`<rect y="${i*20/13}" width="30" height="${20/13}" fill="#b22234"/>`).join('')+'<rect width="12" height="10.77" fill="#3c3b6e"/>'+[[2,2],[5,2],[8,2],[3.5,4.4],[6.5,4.4],[2,6.8],[5,6.8],[8,6.8],[3.5,9.0],[6.5,9.0]].map(([x,y])=>`<circle cx="${x+.5}" cy="${y}" r=".55" fill="#fff"/>`).join('');break;
+    case 'CA': s='<rect width="30" height="20" fill="#fff"/><rect width="7.5" height="20" fill="#d80621"/><rect x="22.5" width="7.5" height="20" fill="#d80621"/><path d="M15 3.5l1.2 2.3 1.6-.6-.5 3.4 2-1.8.6 1.2 2-.3-.8 2.2.8.5-3.6 2.8.4 1.3-3.2-.4V17h-1v-2.9l-3.2.4.4-1.3-3.6-2.8.8-.5-.8-2.2 2 .3.6-1.2 2 1.8-.5-3.4 1.6.6z" fill="#d80621"/>';break;
+    case 'AL': s='<rect width="30" height="20" fill="#e41e20"/><path d="M15 4l2.5 3 3-1.5-1.5 3.5 3 1.5-3.5 1-1 3.5-2.5-2-2.5 2-1-3.5-3.5-1 3-1.5-1.5-3.5 3 1.5z" fill="#000"/>';break;
+    case 'ME': s='<rect width="30" height="20" fill="#c40308"/><rect x="1" y="1" width="28" height="18" fill="none" stroke="#d3ae3b" stroke-width="1.2"/><circle cx="15" cy="10" r="3.4" fill="#d3ae3b"/>';break;
+    case 'MK': s='<rect width="30" height="20" fill="#d20000"/><path d="M0 0L13 8.5M30 0L17 8.5M0 20L13 11.5M30 20L17 11.5M15 0V7M15 20V13M0 10H11M30 10H19" stroke="#ffe600" stroke-width="2.4"/><circle cx="15" cy="10" r="3.2" fill="#ffe600" stroke="#d20000" stroke-width=".7"/>';break;
+    case 'BA': s='<rect width="30" height="20" fill="#002395"/><path d="M9 0H24V15Z" fill="#fecb00"/>';break;
+    case 'XK': s='<rect width="30" height="20" fill="#244aa5"/><path d="M10 9.5l3-1.8 3 .6 2.6-1.6 1.4 2 -1 2.6 -2.6 1.2 -3 -.4 -2.4 -.8z" fill="#d0a650"/>';break;
+    default: s='<rect width="30" height="20" fill="#9aa0a6"/>';
+  }
+  return s;
+}
+
 /* places: countries and their big cities (GBIF grid counts credited to the nearest big city) */
 const RFULL={SE:'Sweden',GB:'United Kingdom',NL:'Netherlands',NO:'Norway',DK:'Denmark',AT:'Austria',CH:'Switzerland',FR:'France',DE:'Germany',FI:'Finland',ES:'Spain',RU:'Russia',BE:'Belgium',SI:'Slovenia',EE:'Estonia',PL:'Poland',IT:'Italy',LT:'Lithuania',BY:'Belarus',PT:'Portugal',CZ:'Czechia',LV:'Latvia',UA:'Ukraine',LU:'Luxembourg',RS:'Serbia',SK:'Slovakia',HU:'Hungary',RO:'Romania',IE:'Ireland',GR:'Greece',HR:'Croatia',BA:'Bosnia and Herzegovina',BG:'Bulgaria',MK:'North Macedonia',AL:'Albania',ME:'Montenegro',XK:'Kosovo',MD:'Moldova',IS:'Iceland',US:'United States',CA:'Canada'};
 const cname=d=>RFULL[d.cc]||d.cc;
@@ -551,8 +583,8 @@ function renderList(){
   const cs=listCities().slice().sort((a,b)=>val(b,season)-val(a,season)||b.n-a.n);
   const tot=cs.reduce((a,c)=>a+val(c,season),0);
   document.getElementById('month').value=season;
-  document.getElementById('rsum').innerHTML=`<b>Most sightings ${per}</b><br>${country?RFULL[country]:ALLREG[region]} · ${fmt(tot)} in total`;
-  cs.filter(c=>val(c,season)>0).slice(0,10).forEach((c,i)=>{
+  document.getElementById('rsum').innerHTML=`<b>All ${cs.length} cities, by sightings ${per}</b><br>${country?RFULL[country]:ALLREG[region]} · ${fmt(tot)} in total`;
+  cs.forEach((c,i)=>{
     const b=document.createElement('button'); b.className='rank'+(selCity===c?' on':'');
     b.innerHTML=`<i>${i+1}</i><span>${c.name} <small>${country?'':cname(c)}</small></span><b>${fmt(val(c,season))}</b>`;
     b.onclick=()=>pickCity(c,true); L.appendChild(b);
@@ -585,11 +617,11 @@ function zoomTo25(c){
 function showArea(){
   const cs=listCities(), m=sumM(cs), name=country?RFULL[country]:ALLREG[region];
   const st=rainStations(); const p=Array.from({length:12},(_,i)=>Math.round(d3.mean(st,s=>s.p[i])));
-  hv={name,place:`${cs.length} big cities`,m,p,t:null,station:`${st.length} stations (average)`,area:true,n:d3.sum(cs,c=>c.n)};
+  hv={name,cc:country||null,ref:country?sumM(DATA.cities[region]):null,refName:ALLREG[region].replace('All of ',''),place:`${cs.length} big cities`,m,p,t:null,station:`${st.length} stations (average)`,area:true,n:d3.sum(cs,c=>c.n)};
   cur=hv; gSel.selectAll('*').remove();
   const mt=document.getElementById('mTitle'); mt.querySelector('b').textContent=name; mt.querySelector('span').textContent=`${fmt(hv.n)} sightings around ${cs.length} big cities · pick a city to zoom to 25 km`;
   month=isMon(season)?+season.slice(1)-1:peak(m);
-  renderList(); drawIcons(false); drawChart(); renderMonths(); setMonth(month);
+  renderList(); drawIcons(false); drawMapFlag(); drawChart(); renderMonths(); setMonth(month);
 }
 function nearestStation(d){const c=Math.cos(d.lat*Math.PI/180);return DATA.rain.reduce((b,s)=>{const q=(s.lat-d.lat)**2+((s.lon-d.lon)*c)**2;return !b||q<b.q?{s,q}:b;},null);}
 function pickCity(d,fly){
@@ -600,14 +632,14 @@ function pickCity(d,fly){
   const ns=nearestStation(d), st=ns.s, km=Math.sqrt(ns.q)*111;
   const sp=DATA.spots.map(s=>({s,q:(s.lat-d.lat)**2+((s.lon-d.lon)*Math.cos(d.lat*Math.PI/180))**2})).sort((a,b)=>a.q-b.q)[0];
   const spOk=Math.sqrt(sp.q)*111<120;
-  hv={name:d.name,place:cname(d)+' · forests within about 25 km and beyond',m:d.mm,p:spOk?sp.s.p:st.p,t:spOk?sp.s.t:null,station:spOk?sp.s.station:`${st.name} (${Math.round(km)} km away)`,period:spOk?sp.s.period:'1991–2020',city:true,n:d.n};
+  hv={name:d.name,cc:d.cc,ref:sumM(COUNTRIES[d.cc].cities),refName:RFULL[d.cc],place:cname(d)+' · forests within about 25 km and beyond',m:d.mm,p:spOk?sp.s.p:st.p,t:spOk?sp.s.t:null,station:spOk?sp.s.station:`${st.name} (${Math.round(km)} km away)`,period:spOk?sp.s.period:'1991–2020',city:true,n:d.n};
   cur=hv; selCity=d;
   gSel.selectAll('*').remove();
   gSel.append('path').datum(d3.geoCircle().center([d.lon,d.lat]).radius(25/111.2)()).attr('class','ring25').attr('d',path);
   month=isMon(season)?+season.slice(1)-1:peak(d.mm);
   const mt=document.getElementById('mTitle'); mt.querySelector('b').textContent=d.name; mt.querySelector('span').textContent=`${cname(d)} · ${fmt(d.n)} sightings around the city · dashed ring = 25 km`;
   if(fly) zoomTo25(d);
-  renderList(); drawIcons(false); drawChart(); renderMonths(); setMonth(month);
+  renderList(); drawIcons(false); drawMapFlag(); drawChart(); renderMonths(); setMonth(month);
 }
 
 /* 2D map */
@@ -618,7 +650,7 @@ const proj=d3.geoMercator(), path=d3.geoPath(proj);
 svg.append('defs').html('<clipPath id="landClip"><path id="landClipPath"/></clipPath><pattern id="mtnHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="6" height="6" fill="#c9a77d" opacity=".16"/><path d="M0 0V6" stroke="#b08a5e" stroke-width="1" opacity=".35"/></pattern>');
 svg.select('defs').append('clipPath').attr('id','covClip').append('path').attr('id','covClipPath');
 const gMap=svg.append('g'), gLand=gMap.append('g'), gMtn=gMap.append('g'), gIso=gMap.append('g').attr('clip-path','url(#landClip)').append('g').attr('class','iso').attr('clip-path','url(#covClip)'), gBorder=gMap.append('g'), gLake=gMap.append('g'), gRiver=gMap.append('g'), gSel=gMap.append('g'),
-  gRain=svg.append('g'), gPeaks=svg.append('g'), gIcons=svg.append('g'), gLabels=svg.append('g');
+  gRain=svg.append('g'), gPeaks=svg.append('g'), gIcons=svg.append('g'), gFlag=svg.append('g').attr('class','flags'), gLabels=svg.append('g');
 let rainOn=true, isoKey='', riverThr=-1;
 const IC_PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>', IC_PAUSE='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5.5" y="4.5" width="4.5" height="15" rx="1.2"/><rect x="14" y="4.5" width="4.5" height="15" rx="1.2"/></svg>';
 document.getElementById('play').innerHTML=IC_PLAY;
@@ -679,8 +711,8 @@ function drawIcons(anim){
   if(rainOn){const th=rainThr();html+=`<span class="lgRain"><span>Rain, ${season==='all'?'year':isMon(season)?'month':'season'} total (mm)</span><span class="sw">${th.map(v=>`<i style="background:${rainColor(v)}"></i>`).join('')}</span><span class="tk">${th.map(v=>`<span>${v>=1000?(v/1000)+'k':v}</span>`).join('')}</span><span style="font-size:10.5px">Estimated from ${rainStations().length} stations</span></span>`;}
   document.getElementById('mLegend').innerHTML=html;
   const lbData=regs.filter(d=>val(d,season)>0).sort((a,b)=>val(b,season)-val(a,season)).map(d=>({k:'r:'+d.name+d.cc,t:d.name,lon:d.lon,lat:d.lat,c:'rLbl',dy:12,w:d.name.length*7+6,city:d}))
-    .concat(gMtn.selectAll('path').data().map(m=>({k:'m:'+m.name,t:m.name,lon:m.c[0],lat:m.c[1],c:'mLbl',dy:0,w:m.name.length*8.6+8,minK:m.sr<=3?1:m.sr<=4?1.8:3})))
-    .concat(PHYS.peaks.filter(p=>inReg(p[2],p[3])).sort((a,b)=>a[4]-b[4]||b[1]-a[1]).map(p=>({k:'p:'+p[0]+p[2],t:`▲ ${p[0]} ${fmt(p[1])} m`,lon:p[2],lat:p[3],c:'pLbl',dy:3,dx:-4,w:(p[0].length+9)*5.8,minK:p[4]<=5?2.5:5})))
+    .concat(gMtn.selectAll('path').data().map(m=>({k:'m:'+m.name,t:'⛰️ '+m.name,lon:m.c[0],lat:m.c[1],c:'mLbl',dy:0,w:m.name.length*8.6+26,minK:m.sr<=4?1:m.sr<=5?1.8:3})))
+    .concat(PHYS.peaks.filter(p=>inReg(p[2],p[3])).sort((a,b)=>a[4]-b[4]||b[1]-a[1]).map(p=>({k:'p:'+p[0]+p[2],t:`🏔️ ${p[0]} ${fmt(p[1])} m`,lon:p[2],lat:p[3],c:'pLbl',dy:3,dx:-4,w:(p[0].length+9)*5.8,minK:p[4]<=5?2.5:5})))
     .concat(gRiver.selectAll('path').data().filter(r=>r.name&&r.sr<=7).sort((a,b)=>a.sr-b.sr||b.len-a.len).map(r=>({k:'v:'+r.name+r.mid,t:r.name,lon:r.mid[0],lat:r.mid[1],c:'rvLbl',dy:-3,dx:3,w:r.name.length*5.8+4,minK:r.sr<=4?2:4})))
     .concat(rainOn?rainStations().map(s=>({k:'s:'+s.name,t:s.name,lon:s.lon,lat:s.lat,c:'sLbl',dy:3,dx:6,w:s.name.length*5.6+4,minK:1.5})):[])
     .concat(PHYS.towns.filter(c=>inReg(c[1],c[2])).sort((a,b)=>b[3]-a[3]).map(c=>({k:'t:'+c[0]+c[1],t:'• '+c[0],lon:c[1],lat:c[2],c:'tLbl',dy:3,dx:-3,w:(c[0].length+2)*6,minK:c[3]>=100000?8:14})));
@@ -747,7 +779,7 @@ function placeLabels(){
 function place(){
   placeRain();
   gIcons.selectAll('use').interrupt().attr('transform',d=>iconTf(d,d._s||0));
-  placeLabels();
+  placeFlag(); placeLabels();
 }
 new ResizeObserver(()=>size()).observe(box);
 
@@ -803,25 +835,43 @@ function renderMonths(){
   s.m.forEach((v,i)=>{const b=document.createElement('button');b.className=(v>0?'has':'')+(i===month?' on':'');b.setAttribute('aria-label',`${MONL[i]}: ${v} records`);
     b.innerHTML=`<i style="height:${Math.max(3,70*v/mx)}px"></i>${MON[i][0]}`;b.onclick=()=>{stopHv();goMonth(i);};M.appendChild(b);});
 }
+function drawFoxFlag(){
+  let g=document.getElementById('fgFlag');
+  if(!g){const gr=document.getElementById('fgGround');g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='fgFlag';gr.parentNode.insertBefore(g,gr);}
+  const cc=hv&&hv.cc; if(!cc){g.innerHTML='';g.dataset.cc='';return;} if(g.dataset.cc===cc) return; g.dataset.cc=cc;
+  g.innerHTML=`<g transform="translate(92 150)"><rect x="-1.6" y="0" width="3.2" height="150" rx="1.5" fill="#6b4a33"/><circle cy="-2" r="4" fill="#d9b25a"/><g class="wave"><svg x="1.6" y="4" width="66" height="44" viewBox="0 0 30 20" preserveAspectRatio="none">${flagSVG(cc)}</svg><rect x="1.6" y="4" width="66" height="44" fill="none" stroke="rgba(0,0,0,.18)"/></g></g>`;
+}
+function drawMapFlag(){
+  const d=selCity||(country?countryAnchor(country):null);
+  const g=gFlag.selectAll('g.pin').data(d?[d]:[],x=>x.name+x.cc+(selCity?'c':'k'));
+  g.exit().remove();
+  const e=g.enter().append('g').attr('class','pin');
+  e.append('path').attr('d','M0 0V-34').attr('stroke','#3a3a3c').attr('stroke-width',1.6);
+  e.append('circle').attr('r',2.2).attr('fill','#3a3a3c');
+  e.append('g').attr('transform','translate(.8 -34)').html(d=>`<svg width="22" height="14.7" viewBox="0 0 30 20" preserveAspectRatio="none">${flagSVG(d.cc)}</svg><rect width="22" height="14.7" fill="none" stroke="rgba(0,0,0,.25)" stroke-width=".8"/>`);
+  placeFlag();
+}
+function countryAnchor(cc){const cs=COUNTRIES[cc].cities,w=d3.sum(cs,c=>c.n)||1,lon=d3.sum(cs,c=>c.lon*c.n)/w,lat=d3.sum(cs,c=>c.lat*c.n)/w;return cs.reduce((b,c)=>{const q=(c.lat-lat)**2+(c.lon-lon)**2;return !b||q<b.q?{c,q}:b;},null).c;}
+function placeFlag(){gFlag.selectAll('g.pin').attr('transform',d=>{const p=xy(d.lon,d.lat),s=d._s||12;return `translate(${p[0]+s/2+5},${p[1]+2})`;});}
 function setMonth(mo){
-  month=mo; const s=hv, mx=Math.max(1,...s.m), v=s.m[mo], f=v/mx, k=v>0?Math.max(1,Math.round(f*PILE.length)):0;
+  month=mo; const s=hv, v=s.m[mo], den=s.ref?s.ref[mo]:Math.max(1,...s.m), f=den?Math.min(1,v/den):0, k=v>0?Math.max(1,Math.round(f*PILE.length)):0;
   pileG.selectAll('g.m').each(function(d,i){
     const el=this; const want=i<k; if(want===el.classList.contains('in')) return;
     el.style.transitionDelay=want?`${i*45}ms`:`${(PILE.length-i)*20}ms`; el.classList.toggle('in',want);});
   const fg=document.getElementById('forager'); fg.setAttribute('class','s-'+SEASON_OF(mo)+(f>=.5?' happy':''));
   d3.select('#fgCarry').style('transform',`rotate(${(1-f)*-7+f*2}deg)`);
-  d3.select('#fgNet').style('transform',`scale(${.62+.42*f},${.82+.2*f})`); document.getElementById('fgTagT').textContent=fmt(v);
+  d3.select('#fgNet').style('transform',`scale(${.62+.42*f},${.82+.2*f})`); document.getElementById('fgTagT').textContent=s.ref?(v&&f<.01?'<1%':Math.round(100*f)+'%'):fmt(v); drawFoxFlag();
 
   d3.select('#fgMouth').attr('d',f>=.5?'M255 176 q5 5 10 0':f>0?'M256 177 q4 3 8 0':'M256 179 q4 -1.5 8 0');
   document.getElementById('fgSpark').classList.toggle('on',f>=.6);
   document.getElementById('fgGround').classList.toggle('on',f>=.35);
-  const state=v===0?'Empty bag':f>=.6?'Full bag':f>=.25?'Half a bag':'A handful';
-  const col=v===0?tok('--sub'):f>=.6?tok('--gold'):tok('--text');
+  const state=v===0?'Empty bag':f>=.5?'Full bag':f>=.2?'Half a bag':'A handful';
+  const col=v===0?tok('--sub'):f>=.5?tok('--gold'):tok('--text');
   document.getElementById('hvMonth').textContent=MONL[mo];
   const st=document.getElementById('hvState'); st.textContent=state; st.style.color=col;
   document.getElementById('hvBadge').textContent=`${MON[mo]} · ${state}`;
   document.getElementById('hvSpot').textContent=`${s.name} · ${s.place}`;
-  document.getElementById('hvStat').innerHTML=`<b>${fmt(v)}</b> GBIF records ${s.city?'around '+s.name:'across '+s.name} · ${v===0?'none logged this month':(()=>{const p=100*v/s.m.reduce((a,b)=>a+b,0);return (p<1?'under 1':Math.round(p))+'% of the year';})()} · rain ${s.p[mo]} mm${s.t?', '+s.t[mo]+' °C':' at '+s.station}`;
+  document.getElementById('hvStat').innerHTML=s.ref?`<b>${fmt(v)}</b> of ${fmt(s.ref[mo])} GBIF records in ${s.refName} this month come from ${s.city?'around '+s.name:s.name} (${s.ref[mo]?(v&&f<.01?'under 1':Math.round(100*f))+'%':'none logged'}) · rain ${s.p[mo]} mm${s.t?', '+s.t[mo]+' °C':' at '+s.station}`:`<b>${fmt(v)}</b> GBIF records across ${s.name} · bag compares with the busiest month · rain ${s.p[mo]} mm at ${s.station}`;
   document.querySelectorAll('#hvMonths button').forEach((b,i)=>b.classList.toggle('on',i===mo));
   chart.setOption({series:[{id:'prec',markArea:monthMark()}]});
 }

@@ -26,7 +26,7 @@ Where and when golden chanterelles (*Cantharellus*) turn up in Europe, the USA a
 | City mushrooms | GBIF records counted in 1° × 1.5° grid cells (about 110 km), each cell credited to the largest city of 150,000+ people (60,000+ in Canada) within about 110 km | Estimated |
 | Rain contours | Monthly normals from 86 weather stations (mostly 1991–2020), blended by distance (about 180 km reach), blank beyond 450 km from a station | Estimated |
 | Spot climate | One weather station per spot, Wikipedia climate tables | Long-term normals |
-| Fox's bag | The chosen month's records divided by the place's busiest month | Display only |
+| Fox's bag | The city's share of all records in its country that month (a country's share of its region) | Display only |
 | Rivers, lakes, mountains | Natural Earth 1:10m | Map data |
 
 Records show where people found and logged chanterelles, so busy areas also reflect where more people look.
@@ -37,6 +37,7 @@ Records show where people found and logged chanterelles, so busy areas also refl
 - `reference.html`: model and data reference
 - `data/chanterelle_grid.json`: GBIF record counts per grid cell with a month breakdown
 - `scripts/fetch_grid_fast.py`: rebuilds the grid file from the GBIF API (Python 3, no extra packages)
+- `scripts/fetch_dedup.py`: downloads the records, removes duplicates and rebuilds the grid with a year-month breakdown (not applied to the page yet)
 
 ## Sources
 
