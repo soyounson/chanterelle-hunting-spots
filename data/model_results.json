@@ -1,0 +1,62 @@
+{
+ "cv_by_country": {
+  "baseline (month only)": {
+   "roc_auc": 0.876,
+   "pr_auc": 0.691,
+   "brier": 0.117,
+   "brier_skill": 0.0
+  },
+  "logistic regression": {
+   "roc_auc": 0.905,
+   "pr_auc": 0.755,
+   "brier": 0.11,
+   "brier_skill": 0.063
+  },
+  "gradient boosting": {
+   "roc_auc": 0.92,
+   "pr_auc": 0.841,
+   "brier": 0.098,
+   "brier_skill": 0.159
+  }
+ },
+ "europe_to_north_america": {
+  "baseline (month only)": {
+   "roc_auc": 0.848,
+   "pr_auc": 0.636,
+   "brier": 0.14,
+   "brier_skill": 0.0
+  },
+  "logistic regression": {
+   "roc_auc": 0.893,
+   "pr_auc": 0.696,
+   "brier": 0.129,
+   "brier_skill": 0.083
+  },
+  "gradient boosting": {
+   "roc_auc": 0.811,
+   "pr_auc": 0.618,
+   "brier": 0.15,
+   "brier_skill": -0.066
+  }
+ },
+ "data": {
+  "samples": 2916,
+  "cities": 243,
+  "countries": 29,
+  "positive_rate": 0.291,
+  "min_records": 30,
+  "threshold": 0.1
+ },
+ "chosen": "logistic regression",
+ "logistic_weights": {
+  "temp this month": 0.84,
+  "temp last month": 0.92,
+  "temp change": -0.18,
+  "rain this month": 0.75,
+  "rain last 2 months": 1.73,
+  "rain avg last 3 months": -2.17,
+  "latitude": 0.79,
+  "month (sin)": -0.79,
+  "month (cos)": -0.66
+ }
+}
