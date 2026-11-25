@@ -59,74 +59,69 @@ footer{margin-top:60px;font-size:13px;color:var(--sub)}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="chm" viewBox="0 0 32 32"><path d="M13 16 Q12.6 24 12.2 30 L19.8 30 Q19.4 24 19 16Z" fill="#f2a531"/><path d="M3 7 Q8 16 13 17 L19 17 Q24 16 29 7Z" fill="#e08b1d"/><path d="M9 9 Q13 15 15 18 M16 9 V18 M23 9 Q19 15 17 18" stroke="#c8741a" stroke-width=".8" fill="none"/><path d="M3 7 Q4 4 6.5 5.5 Q9 2.5 12 4.5 Q16 2 20 4.5 Q23 2.5 25.5 5.5 Q28 4 29 7 Q16 11 3 7Z" fill="#f7b847"/><path d="M8 5 Q12 3.4 16 4" stroke="#ffe39a" stroke-width="1.2" fill="none" stroke-linecap="round"/></symbol><symbol id="brandIcon" viewBox="0 0 40 32"><path d="M4 4 L12 14 L6 18Z" fill="#b4561f"/><path d="M28 4 L20 14 L26 18Z" fill="#b4561f"/><path d="M16 26 L3 15 Q3 8 8 7 L16 11 L24 7 Q29 8 29 15Z" fill="#cc6a2c"/><path d="M16 26 L7 17 Q11 19 16 18 Q21 19 25 17Z" fill="#f7ead3"/><circle cx="11" cy="14" r="1.4" fill="#3b2a20"/><circle cx="21" cy="14" r="1.4" fill="#3b2a20"/><circle cx="16" cy="24.5" r="1.6" fill="#3b2a20"/><g transform="translate(26 12) scale(.45)"><use href="#chm" width="32" height="32"/></g></symbol></defs></svg>
 <nav><div class="in">
   <b><svg viewBox="0 0 40 32"><use href="#brandIcon"/></svg>Chanterelle hunting spots</b>
-  <a href="./">← Back to the map</a><a href="#model">Model</a><a href="#data">Data</a><a href="#limits">Limits</a>
+  <a href="./" class="back">← Back to the map</a><a href="#model">Model</a><a href="#data">Data</a><a href="#limits">Limits</a>
   <span class="sp"></span><button id="themeBtn">Auto</button>
 </div></nav>
 <div class="wrap">
 <header>
   <h1>Model and data reference</h1>
-  <p class="lede">The map is for people heading into the woods. This page is for anyone who wants to know where each number comes from, how it was cleaned, and how the forecast model will be built and tested.</p>
+  <p class="lede">The map is for people heading into the woods. This page is for anyone who wants to know where each number comes from, how it was cleaned, and how the model was built and tested.</p>
   <div class="toc"><a href="#why">Why a model</a><a href="#io">Inputs and outputs</a><a href="#train">Training and testing</a><a href="#metrics">Metrics</a><a href="#gbif">Chanterelle records</a><a href="#rain">Rain and temperature</a><a href="#cities">Cities</a><a href="#mapdata">Map layers</a><a href="#limits">Limits</a></div>
 </header>
 
 <section id="model">
 <div class="eyebrow" id="why">Model · 1</div>
-<h2>Why a model, and what it predicts <span class="status st-plan">Planned</span></h2>
+<h2>Why a model, and what it predicts <span class="status st-done">Version 0 trained</span></h2>
 <div class="card">
-<p>The map today shows <b>history</b>: in which months people have logged chanterelles around each city over all years. It cannot say whether <b>this</b> autumn will be good. Chanterelles fruit after the soil has been warm and wet for a few weeks, so a wet August usually means a good September and a dry summer means a poor one.</p>
-<p>The model will answer one question for a chosen city and month: <b>how likely is it that this month will be a better-than-usual chanterelle month there, given the weather of the past weeks?</b></p>
-<p class="note">Status: not trained yet. Every result number on this page that would come from the model is n/s (not shown) until it exists.</p>
+<p>The map shows <b>history</b>: when people have logged chanterelles around each city, all years pooled. Many cities have only a few records, so their month pattern is noisy, and a city with no records says nothing at all. Chanterelles fruit after weeks of warm, wet soil, so the local climate should tell us a lot about <b>when</b> to go.</p>
+<p><b>Version 0 answers:</b> given a city's usual weather, how likely is each month to be a chanterelle month there? A "chanterelle month" is a month holding at least 10% of that city's yearly sightings.</p>
+<p><b>Not yet:</b> "will <i>this</i> year be good?". That needs year-by-year weather and year-by-year sightings (see Next steps).</p>
 </div>
 
 <div class="eyebrow" id="io">Model · 2</div>
-<h2>Which model, and its inputs and outputs <span class="status st-plan">Planned</span></h2>
+<h2>Inputs and outputs</h2>
 <div class="grid2">
 <div class="card"><h3>Inputs (per city, per month)</h3><ul>
-<li>Rain in the previous 1, 2 and 3 months, and how far each is above or below normal</li>
-<li>Mean temperature in the previous 1 and 2 months</li>
-<li>Soil moisture and days since the last heavy rain (ERA5-Land reanalysis)</li>
-<li>Month of the year and latitude</li>
-<li>Forest share around the city</li>
-<li>Search effort: all fungi records logged in the same area and month (so a busy observer year is not mistaken for a good mushroom year)</li>
-</ul></div>
+<li>Mean temperature this month and last month, and the change between them</li>
+<li>Rain this month, the last 2 months, and the 3-month average</li>
+<li>Latitude</li>
+<li>Month of the year (as a smooth cycle)</li>
+</ul><p class="note">All weather values are 1991–2020 normals from the nearest of 86 weather stations.</p></div>
 <div class="card"><h3>Output</h3>
-<p>A probability from 0 to 1 that the month is above that city's usual level of chanterelle sightings, after adjusting for search effort.</p>
-<p>On the map this would drive the fox's bag: a full bag would mean "very likely a good month".</p>
-<h3 style="margin-top:14px">Models</h3><ul>
-<li><b>Baseline:</b> climatology, the city's historical share of sightings in that month</li>
-<li><b>Model 1:</b> logistic regression (easy to read: each input gets one weight)</li>
-<li><b>Model 2:</b> gradient-boosted trees (LightGBM), kept only if it clearly beats model 1</li>
+<p>A probability from 0 to 100% that the month is a chanterelle month for that city. It appears in the harvest panel as "Model".</p>
+<h3 style="margin-top:14px">Models compared</h3><ul>
+<li><b>Baseline:</b> how often each calendar month is a chanterelle month across the training cities</li>
+<li><b>Logistic regression:</b> one weight per input, easy to read</li>
+<li><b>Gradient boosting</b> (scikit-learn HistGradientBoosting, depth 3)</li>
 </ul></div>
 </div>
 
 <div class="eyebrow" id="train">Model · 3</div>
-<h2>How it will be trained, tested and evaluated <span class="status st-plan">Planned</span></h2>
-<div class="flow">
-<div><b>1 · Data</b>GBIF sightings per city, per year and month, 2000–2025, plus monthly weather for the same months</div>
-<div><b>2 · Train</b>Years 2000–2019</div>
-<div><b>3 · Validate</b>Years 2020–2022, used to tune settings</div>
-<div><b>4 · Test</b>Years 2023–2025, touched once at the end</div>
-</div>
-<div class="card">
-<ul>
-<li><b>Split by year, not at random.</b> A random split would let the model see a neighbouring city in the same wet September and look better than it really is.</li>
-<li><b>Spatial check:</b> leave one country out at a time, to see if a model trained on Sweden and Germany still works for, say, France or Oregon.</li>
-<li><b>Same rule for everyone:</b> a model only counts as useful if it beats the climatology baseline on the test years.</li>
-<li><b>Needed first:</b> the current grid file pools all years together. Training needs a new fetch with a year breakdown (GBIF <code>facet=year</code> per cell and month) and a daily weather series per city.</li>
-</ul>
-</div>
+<h2>How it was trained and tested</h2>
+<div class="card"><ul>
+<li><b>Data:</b> 243 cities with at least 30 sightings, 12 months each (2,916 city-months) in 29 countries. 29% of city-months are chanterelle months.</li>
+<li><b>Test 1, unseen countries:</b> 5-fold cross-validation grouped by country. Every city of a country is either in training or in testing, never both, so neighbouring cities cannot leak answers.</li>
+<li><b>Test 2, a new continent:</b> train on Europe only, test on the USA and Canada.</li>
+<li>The model used on the map is then refit on all cities.</li>
+</ul></div>
 
 <div class="eyebrow" id="metrics">Model · 4</div>
-<h2>Accuracy and other metrics <span class="status st-plan">Planned</span></h2>
-<div class="card tw"><table>
-<tr><th>Metric</th><th>What it tells you</th><th>Result</th></tr>
-<tr><td>ROC-AUC</td><td>How well good months are ranked above poor ones (0.5 is a coin flip, 1.0 is perfect)</td><td>n/s</td></tr>
-<tr><td>PR-AUC</td><td>The same, focused on the rarer good months</td><td>n/s</td></tr>
-<tr><td>Brier score</td><td>How close the probabilities are to what happened (lower is better)</td><td>n/s</td></tr>
-<tr><td>Brier skill vs climatology</td><td>How much better than "same as every year" (above 0 means better)</td><td>n/s</td></tr>
-<tr><td>Calibration curve</td><td>Whether "70%" really comes true about 7 times in 10</td><td>n/s</td></tr>
-</table>
-<p class="note" style="margin-top:8px">Plain accuracy is not used on its own, because good months are less common and a model that always says "poor month" would still score well.</p></div>
+<h2>Results</h2>
+<div class="card"><h3>Test 1: unseen countries</h3><div class="tw"><table><tr><th>Model</th><th>ROC-AUC</th><th>PR-AUC</th><th>Brier</th><th>Skill vs baseline</th></tr><tr><td>Baseline: month of year only</td><td>0.88</td><td>0.69</td><td>0.117</td><td>+0.00</td></tr><tr><td>Logistic regression (used on the map)</td><td>0.91</td><td>0.76</td><td>0.110</td><td>+0.06</td></tr><tr><td>Gradient boosting</td><td>0.92</td><td>0.84</td><td>0.098</td><td>+0.16</td></tr></table></div>
+<h3 style="margin-top:16px">Test 2: trained on Europe, tested on North America</h3><div class="tw"><table><tr><th>Model</th><th>ROC-AUC</th><th>PR-AUC</th><th>Brier</th><th>Skill vs baseline</th></tr><tr><td>Baseline: month of year only</td><td>0.85</td><td>0.64</td><td>0.140</td><td>+0.00</td></tr><tr><td>Logistic regression (used on the map)</td><td>0.89</td><td>0.70</td><td>0.129</td><td>+0.08</td></tr><tr><td>Gradient boosting</td><td>0.81</td><td>0.62</td><td>0.150</td><td>-0.07</td></tr></table></div>
+<p class="note" style="margin-top:8px">ROC-AUC: how well chanterelle months are ranked above other months (0.5 is a coin flip, 1 is perfect). PR-AUC: the same, focused on the rarer chanterelle months. Brier: average squared error of the probabilities (lower is better). Skill: improvement in Brier over the baseline (above 0 is better).</p>
+<p><b>Choice:</b> gradient boosting is best on unseen European countries, but it gets worse than the baseline when moved to North America. Logistic regression beats the baseline in both tests, so the map uses logistic regression.</p>
+<p class="note">Honest limits: the baseline is already strong, because the season is mostly set by the calendar. The model adds a modest gain (Brier skill +0.06 and +0.08). Labels come from where people log records, so effort bias is still inside them.</p>
+</div>
+
+<div class="eyebrow">Model · 5</div>
+<h2>Next steps <span class="status st-plan">Planned</span></h2>
+<div class="card"><ul>
+<li>Year-by-year sightings per city and month (the new <code>fetch_dedup.py</code> also removes duplicate records)</li>
+<li>Year-by-year monthly weather (ERA5-Land reanalysis), to predict whether <i>this</i> year's month will beat the usual level</li>
+<li>Search-effort correction: divide by all fungi records in the same area and month</li>
+<li>Split by year for testing (train 2000–2019, validate 2020–2022, test 2023–2025)</li>
+</ul></div>
 </section>
 
 <section id="data">
@@ -174,7 +169,7 @@ footer{margin-top:60px;font-size:13px;color:var(--sub)}
 <p><b>Source.</b> Long-term monthly normals (mostly 1991–2020) from 86 weather stations: 39 in Europe, 34 in the USA, 13 in Canada. The numbers come from national weather services (for example SMHI, the Met Office, Deutscher Wetterdienst, NOAA, Environment Canada) as published in the climate tables of the Wikipedia article for each city.</p>
 <p><b>How it was turned into data.</b> The tables are text on web pages. An AI agent read each table and typed the 12 monthly values into the data file. Values for Copenhagen and several UK stations came from a search summary rather than the table itself, and the Inverness temperatures are still to be checked. These are marked as needing a check against the original service.</p>
 <p><b>Rain contours.</b> For each map point, the station values are blended with weights that fall off with distance (Gaussian, about 180 km), on a 0.4° grid, and drawn as contour bands. Points more than 450 km from any station are left blank.</p>
-<p><b>Temperature.</b> Shown only for 9 featured places that have a full climate table. For other cities the chart shows rain from the nearest station and no temperature.</p>
+<p><b>Temperature.</b> Monthly mean temperature normals (mostly 1991–2020) for all 86 stations, read from the same Wikipedia climate tables ("Daily mean" row). A few tables are for a nearby station rather than the city centre: Glasgow uses Paisley, Brussels uses Uccle, Vancouver uses the airport in Richmond.</p>
 <p class="note">These are averages over 30 years, not this year's weather. The model will need actual monthly weather per year (planned: ERA5-Land from the Copernicus Climate Data Store).</p>
 </div>
 
@@ -201,12 +196,13 @@ footer{margin-top:60px;font-size:13px;color:var(--sub)}
 </ul></div>
 </section>
 
-<footer>Draft v1.2 · 2026-11-25 · <a href="./">Back to the map</a> · Occurrence data: GBIF.org, genus <i>Cantharellus</i>. Climate: national weather services via Wikipedia climate tables. Cities: GeoNames. Map: Natural Earth, US Census.</footer>
+<footer>Draft v1.2 · 2026-11-25 · <a href="./" class="back">Back to the map</a> · Occurrence data: GBIF.org, genus <i>Cantharellus</i>. Climate: national weather services via Wikipedia climate tables. Cities: GeoNames. Map: Natural Earth, US Census.</footer>
 </div>
 <script>
 const root=document.documentElement;let mode='auto';try{mode=localStorage.getItem('cs-theme')||'auto';}catch(e){}
 const btn=document.getElementById('themeBtn');
 function apply(){if(mode==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',mode);btn.textContent=mode[0].toUpperCase()+mode.slice(1);}
+document.querySelectorAll('a.back').forEach(a=>a.onclick=e=>{if(window.parent!==window){e.preventDefault();parent.postMessage('closeRef','*');}});
 btn.onclick=()=>{mode=mode==='auto'?'light':mode==='light'?'dark':'auto';try{localStorage.setItem('cs-theme',mode);}catch(e){}apply();};apply();
 </script>
 </body>

@@ -27,6 +27,7 @@ Where and when golden chanterelles (*Cantharellus*) turn up in Europe, the USA a
 | Rain contours | Monthly normals from 86 weather stations (mostly 1991–2020), blended by distance (about 180 km reach), blank beyond 450 km from a station | Estimated |
 | Rain and temperature chart | Nearest of 86 weather stations, monthly rain and mean temperature normals (mostly 1991–2020) from Wikipedia climate tables | Long-term normals |
 | Fox's bag | Score out of 100: the city's share of all records in its country that month (a country's share of its region); the bag fills to the same level | Display only |
+| Model (version 0) | Logistic regression on the nearest station's temperature and rain normals: chance that a month is a chanterelle month for a city. Tested on unseen countries and on North America after training on Europe | Trained |
 | Rivers, lakes, mountains | Natural Earth 1:10m | Map data |
 
 Records show where people found and logged chanterelles, so busy areas also reflect where more people look.
@@ -37,6 +38,7 @@ Records show where people found and logged chanterelles, so busy areas also refl
 - `reference.html`: model and data reference
 - `data/chanterelle_grid.json`: GBIF record counts per grid cell with a month breakdown
 - `scripts/fetch_grid_fast.py`: rebuilds the grid file from the GBIF API (Python 3, no extra packages)
+- `scripts/train_model.py`: trains the month model (version 0) and writes `data/model_results.json`
 - `scripts/fetch_dedup.py`: downloads the records, removes duplicates and rebuilds the grid with a year-month breakdown (not applied to the page yet)
 
 ## Sources
