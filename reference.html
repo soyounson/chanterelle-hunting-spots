@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model and data reference</title>
+<meta name="description" content="How Chanterelle hunting spots is built: the prediction model plan, its inputs, outputs and tests, and where every number on the map comes from.">
+<link rel="canonical" href="https://soyounson.github.io/chanterelle-hunting-spots/reference.html">
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--sub:#6e6e73;--line:rgba(0,0,0,.10);--glass:rgba(255,255,255,.72);--chip:rgba(0,0,0,.05);
+  --blue:#3e6ae1;--gold:#c47f08;--ok:#1f8a4c;--warn:#b25b00;--shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--card:#1c1c1e;--text:#f5f5f7;--sub:#8e8e93;--line:rgba(255,255,255,.12);--glass:rgba(28,28,30,.72);--chip:rgba(255,255,255,.08);--gold:#f2b632;--ok:#4cc27e;--warn:#f0a050;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000;--card:#1c1c1e;--text:#f5f5f7;--sub:#8e8e93;--line:rgba(255,255,255,.12);--glass:rgba(28,28,30,.72);--chip:rgba(255,255,255,.08);--gold:#f2b632;--ok:#4cc27e;--warn:#f0a050;--shadow:none;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font-family:Aptos,-apple-system,"SF Pro Text","Segoe UI",system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+nav{position:sticky;top:0;z-index:50;background:var(--glass);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--line)}
+nav .in{max-width:980px;margin:0 auto;padding:11px 16px;display:flex;gap:18px;align-items:center;overflow-x:auto;white-space:nowrap}
+nav b{font-weight:600;display:flex;align-items:center;gap:8px}
+nav b svg{width:26px;height:21px}
+nav a{color:var(--text);opacity:.72;text-decoration:none;font-size:13px}
+nav a:hover{opacity:1}
+nav .sp{flex:1}
+.wrap{max-width:980px;margin:0 auto;padding:16px 16px 80px}
+header{margin:40px 0 8px}
+h1{font-size:42px;line-height:1.08;letter-spacing:-.03em;margin:0 0 10px}
+.lede{font-size:18px;color:var(--sub);margin:0;max-width:720px}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
+.toc a{font-size:13px;text-decoration:none;color:var(--text);background:var(--chip);padding:6px 12px;border-radius:99px}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);font-weight:600;margin:64px 0 4px}
+h2{font-size:32px;line-height:1.15;letter-spacing:-.02em;margin:0 0 8px}
+h3{font-size:18px;margin:0 0 6px;letter-spacing:-.01em}
+p{margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 22px;box-shadow:var(--shadow);margin:14px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid2 .card{margin:0}
+.status{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:99px;margin-left:6px;vertical-align:middle}
+.st-plan{background:rgba(62,106,225,.12);color:var(--blue)}
+.st-done{background:rgba(31,138,76,.12);color:var(--ok)}
+.st-est{background:rgba(178,91,0,.12);color:var(--warn)}
+ul{margin:4px 0 10px;padding-left:20px}
+li{margin:3px 0}
+.tw{overflow-x:auto;margin:6px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--chip);padding:1px 5px;border-radius:6px;word-break:break-word}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}
+.flow div{background:var(--chip);border-radius:14px;padding:12px 14px;font-size:14px}
+.flow b{display:block;font-size:12px;color:var(--blue);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.note{font-size:14px;color:var(--sub)}
+a{color:var(--blue)}
+footer{margin-top:60px;font-size:13px;color:var(--sub)}
+#themeBtn{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--chip);color:var(--text);border-radius:99px;padding:5px 12px;cursor:pointer}
+@media (max-width:760px){h1{font-size:32px}h2{font-size:26px}.grid2,.flow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="chm" viewBox="0 0 32 32"><path d="M13 16 Q12.6 24 12.2 30 L19.8 30 Q19.4 24 19 16Z" fill="#f2a531"/><path d="M3 7 Q8 16 13 17 L19 17 Q24 16 29 7Z" fill="#e08b1d"/><path d="M9 9 Q13 15 15 18 M16 9 V18 M23 9 Q19 15 17 18" stroke="#c8741a" stroke-width=".8" fill="none"/><path d="M3 7 Q4 4 6.5 5.5 Q9 2.5 12 4.5 Q16 2 20 4.5 Q23 2.5 25.5 5.5 Q28 4 29 7 Q16 11 3 7Z" fill="#f7b847"/><path d="M8 5 Q12 3.4 16 4" stroke="#ffe39a" stroke-width="1.2" fill="none" stroke-linecap="round"/></symbol><symbol id="brandIcon" viewBox="0 0 40 32"><path d="M4 4 L12 14 L6 18Z" fill="#b4561f"/><path d="M28 4 L20 14 L26 18Z" fill="#b4561f"/><path d="M16 26 L3 15 Q3 8 8 7 L16 11 L24 7 Q29 8 29 15Z" fill="#cc6a2c"/><path d="M16 26 L7 17 Q11 19 16 18 Q21 19 25 17Z" fill="#f7ead3"/><circle cx="11" cy="14" r="1.4" fill="#3b2a20"/><circle cx="21" cy="14" r="1.4" fill="#3b2a20"/><circle cx="16" cy="24.5" r="1.6" fill="#3b2a20"/><g transform="translate(26 12) scale(.45)"><use href="#chm" width="32" height="32"/></g></symbol></defs></svg>
+<nav><div class="in">
+  <b><svg viewBox="0 0 40 32"><use href="#brandIcon"/></svg>Chanterelle hunting spots</b>
+  <a href="./">← Back to the map</a><a href="#model">Model</a><a href="#data">Data</a><a href="#limits">Limits</a>
+  <span class="sp"></span><button id="themeBtn">Auto</button>
+</div></nav>
+<div class="wrap">
+<header>
+  <h1>Model and data reference</h1>
+  <p class="lede">The map is for people heading into the woods. This page is for anyone who wants to know where each number comes from, how it was cleaned, and how the forecast model will be built and tested.</p>
+  <div class="toc"><a href="#why">Why a model</a><a href="#io">Inputs and outputs</a><a href="#train">Training and testing</a><a href="#metrics">Metrics</a><a href="#gbif">Chanterelle records</a><a href="#rain">Rain and temperature</a><a href="#cities">Cities</a><a href="#mapdata">Map layers</a><a href="#limits">Limits</a></div>
+</header>
+
+<section id="model">
+<div class="eyebrow" id="why">Model · 1</div>
+<h2>Why a model, and what it predicts <span class="status st-plan">Planned</span></h2>
+<div class="card">
+<p>The map today shows <b>history</b>: in which months people have logged chanterelles around each city over all years. It cannot say whether <b>this</b> autumn will be good. Chanterelles fruit after the soil has been warm and wet for a few weeks, so a wet August usually means a good September and a dry summer means a poor one.</p>
+<p>The model will answer one question for a chosen city and month: <b>how likely is it that this month will be a better-than-usual chanterelle month there, given the weather of the past weeks?</b></p>
+<p class="note">Status: not trained yet. Every result number on this page that would come from the model is n/s (not shown) until it exists.</p>
+</div>
+
+<div class="eyebrow" id="io">Model · 2</div>
+<h2>Which model, and its inputs and outputs <span class="status st-plan">Planned</span></h2>
+<div class="grid2">
+<div class="card"><h3>Inputs (per city, per month)</h3><ul>
+<li>Rain in the previous 1, 2 and 3 months, and how far each is above or below normal</li>
+<li>Mean temperature in the previous 1 and 2 months</li>
+<li>Soil moisture and days since the last heavy rain (ERA5-Land reanalysis)</li>
+<li>Month of the year and latitude</li>
+<li>Forest share around the city</li>
+<li>Search effort: all fungi records logged in the same area and month (so a busy observer year is not mistaken for a good mushroom year)</li>
+</ul></div>
+<div class="card"><h3>Output</h3>
+<p>A probability from 0 to 1 that the month is above that city's usual level of chanterelle sightings, after adjusting for search effort.</p>
+<p>On the map this would drive the fox's bag: a full bag would mean "very likely a good month".</p>
+<h3 style="margin-top:14px">Models</h3><ul>
+<li><b>Baseline:</b> climatology, the city's historical share of sightings in that month</li>
+<li><b>Model 1:</b> logistic regression (easy to read: each input gets one weight)</li>
+<li><b>Model 2:</b> gradient-boosted trees (LightGBM), kept only if it clearly beats model 1</li>
+</ul></div>
+</div>
+
+<div class="eyebrow" id="train">Model · 3</div>
+<h2>How it will be trained, tested and evaluated <span class="status st-plan">Planned</span></h2>
+<div class="flow">
+<div><b>1 · Data</b>GBIF sightings per city, per year and month, 2000–2025, plus monthly weather for the same months</div>
+<div><b>2 · Train</b>Years 2000–2019</div>
+<div><b>3 · Validate</b>Years 2020–2022, used to tune settings</div>
+<div><b>4 · Test</b>Years 2023–2025, touched once at the end</div>
+</div>
+<div class="card">
+<ul>
+<li><b>Split by year, not at random.</b> A random split would let the model see a neighbouring city in the same wet September and look better than it really is.</li>
+<li><b>Spatial check:</b> leave one country out at a time, to see if a model trained on Sweden and Germany still works for, say, France or Oregon.</li>
+<li><b>Same rule for everyone:</b> a model only counts as useful if it beats the climatology baseline on the test years.</li>
+<li><b>Needed first:</b> the current grid file pools all years together. Training needs a new fetch with a year breakdown (GBIF <code>facet=year</code> per cell and month) and a daily weather series per city.</li>
+</ul>
+</div>
+
+<div class="eyebrow" id="metrics">Model · 4</div>
+<h2>Accuracy and other metrics <span class="status st-plan">Planned</span></h2>
+<div class="card tw"><table>
+<tr><th>Metric</th><th>What it tells you</th><th>Result</th></tr>
+<tr><td>ROC-AUC</td><td>How well good months are ranked above poor ones (0.5 is a coin flip, 1.0 is perfect)</td><td>n/s</td></tr>
+<tr><td>PR-AUC</td><td>The same, focused on the rarer good months</td><td>n/s</td></tr>
+<tr><td>Brier score</td><td>How close the probabilities are to what happened (lower is better)</td><td>n/s</td></tr>
+<tr><td>Brier skill vs climatology</td><td>How much better than "same as every year" (above 0 means better)</td><td>n/s</td></tr>
+<tr><td>Calibration curve</td><td>Whether "70%" really comes true about 7 times in 10</td><td>n/s</td></tr>
+</table>
+<p class="note" style="margin-top:8px">Plain accuracy is not used on its own, because good months are less common and a model that always says "poor month" would still score well.</p></div>
+</section>
+
+<section id="data">
+<div class="eyebrow" id="gbif">Data · 1</div>
+<h2>Chanterelle sightings (GBIF) <span class="status st-done">Collected</span></h2>
+<div class="card">
+<p><b>What GBIF is.</b> The Global Biodiversity Information Facility is an international, government-funded open data network. It does not collect records itself. It gathers "a species was here on this date" records from thousands of sources into one standard format: museum and herbarium collections, national species atlases (for example Artportalen in Sweden, the Danish fungal atlas, the British Mycological Society), and citizen-science apps such as iNaturalist and Mushroom Observer. Each record has a species, coordinates and usually a date.</p>
+<p><b>How the data was fetched.</b> Through the official GBIF occurrence API (<code>api.gbif.org/v1/occurrence/search</code>), with a script (<code>scripts/fetch_grid_fast.py</code>) run in November 2026. The same query was used for all three regions; only the area filter changes.</p>
+<ul>
+<li>Genus <i>Cantharellus</i> (<code>taxonKey=9623860</code>), so golden chanterelle and its close relatives</li>
+<li>Only records with coordinates (<code>hasCoordinate=true</code>) and no GBIF-flagged location problem (<code>hasGeospatialIssue=false</code>)</li>
+<li>Europe by <code>continent=EUROPE</code>, the USA by <code>country=US</code>, Canada by <code>country=CA</code></li>
+<li>Counted, not downloaded: the area is cut into 1° × 1.5° cells (about 110 km), and GBIF returns the count per cell with a month breakdown (<code>facet=month</code>)</li>
+</ul>
+<div class="tw"><table>
+<tr><th>Region</th><th>Cells with records</th><th>Records</th></tr>
+<tr><td>Europe</td><td>661</td><td>88,088</td></tr>
+<tr><td>USA</td><td>366</td><td>22,956</td></tr>
+<tr><td>Canada</td><td>117</td><td>2,093</td></tr>
+</table></div>
+<p style="margin-top:10px"><b>Cleaning done.</b></p><ul>
+<li>Records without coordinates or with flagged coordinates are excluded by the query</li>
+<li>Records without a month count toward "All year" but not toward any month, so month totals can be smaller</li>
+<li>In the earlier country and state counts, misspelled region names ("Illinios", "Nc", "Quebec", "Newfoundland") were merged into the right region</li>
+</ul>
+<p><b>Not cleaned yet.</b> No duplicate removal (the same find can be logged in two databases), no filter on coordinate precision, no year filter (all years are pooled), and no species split inside the genus. All record types are kept: human observations, museum specimens and a few literature records.</p>
+</div>
+
+<div class="eyebrow" id="cities">Data · 2</div>
+<h2>From grid cells to cities <span class="status st-est">Estimated</span></h2>
+<div class="card">
+<p>People look for "near Stockholm", not "cell 59°N 18°E", so each cell's records are credited to one big city:</p>
+<ul>
+<li>Big city = 150,000+ people (60,000+ in Canada, where cities are fewer)</li>
+<li>Each cell goes to the most populous big city within about 110 km of the cell centre; if there is none, to the nearest big city within 160 km; otherwise to the largest town of 40,000+ people within 110 km; otherwise to the nearest town</li>
+<li>Result: 260 cities in Europe, 153 in the USA, 42 in Canada, and every record is assigned exactly once</li>
+<li>City list: GeoNames, through the open <code>all-the-cities</code> package (cities of 1,000+ people with population figures)</li>
+</ul>
+<p class="note">The 25 km ring on the map shows where to start looking around the city. The count itself covers the whole cell, so it reaches further than 25 km.</p>
+</div>
+
+<div class="eyebrow" id="rain">Data · 3</div>
+<h2>Rain and temperature <span class="status st-est">Estimated</span></h2>
+<div class="card">
+<p><b>Source.</b> Long-term monthly normals (mostly 1991–2020) from 86 weather stations: 39 in Europe, 34 in the USA, 13 in Canada. The numbers come from national weather services (for example SMHI, the Met Office, Deutscher Wetterdienst, NOAA, Environment Canada) as published in the climate tables of the Wikipedia article for each city.</p>
+<p><b>How it was turned into data.</b> The tables are text on web pages. An AI agent read each table and typed the 12 monthly values into the data file. Values for Copenhagen and several UK stations came from a search summary rather than the table itself, and the Inverness temperatures are still to be checked. These are marked as needing a check against the original service.</p>
+<p><b>Rain contours.</b> For each map point, the station values are blended with weights that fall off with distance (Gaussian, about 180 km), on a 0.4° grid, and drawn as contour bands. Points more than 450 km from any station are left blank.</p>
+<p><b>Temperature.</b> Shown only for 9 featured places that have a full climate table. For other cities the chart shows rain from the nearest station and no temperature.</p>
+<p class="note">These are averages over 30 years, not this year's weather. The model will need actual monthly weather per year (planned: ERA5-Land from the Copernicus Climate Data Store).</p>
+</div>
+
+<div class="eyebrow" id="mapdata">Data · 4</div>
+<h2>Map layers <span class="status st-done">Collected</span></h2>
+<div class="card tw"><table>
+<tr><th>Layer</th><th>Source</th><th>Notes</th></tr>
+<tr><td>Country borders</td><td>Natural Earth 1:50m (world-atlas)</td><td>Bundled in the page, works offline</td></tr>
+<tr><td>US state lines</td><td>US Census (us-atlas)</td><td></td></tr>
+<tr><td>Rivers and lakes</td><td>Natural Earth 1:10m</td><td>Larger rivers first, smaller ones as you zoom in</td></tr>
+<tr><td>Mountain ranges and peaks</td><td>Natural Earth 1:10m geography regions</td><td>Hatched areas with names; peaks with height</td></tr>
+<tr><td>Towns</td><td>GeoNames (40,000+ people)</td><td>Shown when zoomed in close to a city</td></tr>
+</table></div>
+</section>
+
+<section id="limits">
+<div class="eyebrow">Read before you go</div>
+<h2>Limits</h2>
+<div class="card"><ul>
+<li><b>More records can mean more searchers.</b> Europe has many more records partly because national atlases there are large and well used. A city with few records is not proof that chanterelles are rare there. Adjusting for search effort is the next step.</li>
+<li><b>Cells are about 110 km wide.</b> A city's count covers a large area, not one forest.</li>
+<li><b>Climate is a 30-year average.</b> It shows the usual pattern, not this year's.</li>
+<li><b>Never eat a mushroom you have not identified with certainty.</b> False chanterelles and jack-o'-lantern mushrooms look similar. Check with a local expert.</li>
+</ul></div>
+</section>
+
+<footer>Draft v1.2 · 2026-11-25 · <a href="./">Back to the map</a> · Occurrence data: GBIF.org, genus <i>Cantharellus</i>. Climate: national weather services via Wikipedia climate tables. Cities: GeoNames. Map: Natural Earth, US Census.</footer>
+</div>
+<script>
+const root=document.documentElement;let mode='auto';try{mode=localStorage.getItem('cs-theme')||'auto';}catch(e){}
+const btn=document.getElementById('themeBtn');
+function apply(){if(mode==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',mode);btn.textContent=mode[0].toUpperCase()+mode.slice(1);}
+btn.onclick=()=>{mode=mode==='auto'?'light':mode==='light'?'dark':'auto';try{localStorage.setItem('cs-theme',mode);}catch(e){}apply();};apply();
+</script>
+</body>
+</html>
