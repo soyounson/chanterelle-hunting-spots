@@ -73,6 +73,13 @@ button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .seg button{border:0;background:transparent;color:var(--text);font:inherit;font-size:14px;padding:8px 0;border-radius:9px;cursor:pointer}
 .seg button.on{background:var(--bg2);box-shadow:0 1px 4px rgba(0,0,0,.12);font-weight:600}
 .list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:2px}
+.rank{display:flex;gap:10px;align-items:center;padding:7px 8px;border-radius:10px;border:0;background:none;cursor:pointer;text-align:left;color:var(--text);font:inherit;font-size:14px;width:100%}
+.rank:hover{background:var(--chip)}
+.rank.on{background:var(--sel)}
+.rank i{font-style:normal;color:var(--sub);width:18px;font-variant-numeric:tabular-nums}
+.rank span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank small{color:var(--sub);font-size:12px}
+.rank b{font-variant-numeric:tabular-nums}
 .spot{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;border:1px solid var(--line);background:var(--glass);cursor:pointer;text-align:left;color:var(--text);font:inherit;width:100%}
 .spot:hover{border-color:var(--blue)}
 .spot.on{border-color:var(--blue);background:var(--sel)}
@@ -100,7 +107,7 @@ button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .fl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);font-weight:600;padding:0 4px;flex:none}
 .selWrap{position:relative;flex:none}
 .selWrap:after{content:"";position:absolute;right:14px;top:50%;width:8px;height:8px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:translateY(-70%) rotate(45deg);pointer-events:none}
-#country{width:100%;appearance:none;-webkit-appearance:none;font:inherit;font-size:15px;font-weight:600;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 36px 10px 14px;cursor:pointer;box-shadow:var(--shadow)}
+#country,#city,#month{width:100%;appearance:none;-webkit-appearance:none;font:inherit;font-size:15px;font-weight:600;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 36px 10px 14px;cursor:pointer;box-shadow:var(--shadow)}
 .refCard{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:center;text-decoration:none;color:var(--text);background:var(--card);border-radius:22px;padding:22px;box-shadow:var(--shadow);border:1px solid var(--line);transition:transform .2s}
 .refCard:hover{transform:translateY(-2px)}
 .refCard b{display:block;font-size:17px;margin-bottom:4px}.refCard span{font-size:14px;color:var(--sub)}
@@ -304,8 +311,11 @@ footer a,.panel a{color:var(--blue)}
   <div class="left">
     <label class="fl" for="country">Country</label>
     <div class="selWrap"><select id="country"></select></div>
-    <div class="fl">Month</div>
-    <div class="mpick" id="mpick" role="group" aria-label="Month"></div>
+    <label class="fl" for="city">City</label>
+    <div class="selWrap"><select id="city"></select></div>
+    <label class="fl" for="month">Month</label>
+    <div class="selWrap"><select id="month"></select></div>
+    <div class="mpick" id="mpick" style="display:none"></div>
     <div class="rsum" id="rsum"></div>
     <div class="list" id="list"></div>
   </div>
@@ -523,17 +533,32 @@ const sumM=list=>list.reduce((a,c)=>a.map((v,i)=>v+c.mm[i]),Array(12).fill(0));
   sel.onchange=()=>setCountry(sel.value);
 })();
 function listCities(){return country?COUNTRIES[country].cities:DATA.cities[region];}
+function fillCities(){
+  const s=document.getElementById('city');
+  const opt=c=>`<option value="${c.name}|${c.cc}">${c.name} · ${fmt(c.n)}</option>`;
+  const byN=a=>a.slice().sort((x,y)=>y.n-x.n);
+  if(country) s.innerHTML=`<option value="">All cities in ${RFULL[country]}</option>`+byN(COUNTRIES[country].cities).map(opt).join('');
+  else s.innerHTML=`<option value="">All cities</option>`+Object.values(COUNTRIES).filter(c=>c.r===region).sort((a,b)=>b.n-a.n).map(c=>`<optgroup label="${RFULL[c.cc]||c.cc}">${byN(c.cities).map(opt).join('')}</optgroup>`).join('');
+  s.value=selCity?selCity.name+'|'+selCity.cc:'';
+}
+document.getElementById('city').onchange=e=>{const v=e.target.value;if(!v){setCountry(document.getElementById('country').value);return;}const [n,cc]=v.split('|');const c=COUNTRIES[cc].cities.find(x=>x.name===n);if(c)pickCity(c,true);};
+(function fillMonths(){const s=document.getElementById('month');
+  s.innerHTML=`<option value="all">All year</option><optgroup label="Months">${MONL.map((m,i)=>`<option value="m${i+1}">${m}</option>`).join('')}</optgroup><optgroup label="Seasons">${['spring','summer','autumn','winter'].map(k=>`<option value="${k}">${k[0].toUpperCase()+k.slice(1)}</option>`).join('')}</optgroup>`;
+  s.onchange=()=>{stopPlay();setSeason(s.value);};})();
 function renderList(){
   const L=document.getElementById('list'); L.innerHTML='';
-  const per=season==='all'?'all year':isMon(season)?'in '+MON[+season.slice(1)-1]:'in '+season;
+  const per=season==='all'?'all year':isMon(season)?'in '+MONL[+season.slice(1)-1]:'in '+season;
   const cs=listCities().slice().sort((a,b)=>val(b,season)-val(a,season)||b.n-a.n);
   const tot=cs.reduce((a,c)=>a+val(c,season),0);
-  document.getElementById('rsum').textContent=`${country?RFULL[country]:ALLREG[region]} · ${fmt(tot)} sightings ${per} · pick a city`;
-  cs.slice(0,60).forEach(c=>{
-    const b=document.createElement('button'); b.className='spot'+(selCity===c?' on':'');
-    b.innerHTML=`<span class="ic">${ICON}</span><span><div class="nm">${c.name}</div><div class="pl">${cname(c)} · peak ${MON[peak(c.mm)]}</div></span><span class="ct"><b>${fmt(val(c,season))}</b>${per}</span>`;
+  document.getElementById('month').value=season;
+  document.getElementById('rsum').innerHTML=`<b>Most sightings ${per}</b><br>${country?RFULL[country]:ALLREG[region]} · ${fmt(tot)} in total`;
+  cs.filter(c=>val(c,season)>0).slice(0,10).forEach((c,i)=>{
+    const b=document.createElement('button'); b.className='rank'+(selCity===c?' on':'');
+    b.innerHTML=`<i>${i+1}</i><span>${c.name} <small>${country?'':cname(c)}</small></span><b>${fmt(val(c,season))}</b>`;
     b.onclick=()=>pickCity(c,true); L.appendChild(b);
   });
+  if(!L.children.length) L.innerHTML='<div class="rsum">No sightings logged for this period.</div>';
+  fillCities();
 }
 function setCountry(v){
   stopHv();
@@ -635,18 +660,19 @@ let timer=null;const ORDER=['spring','summer','autumn','winter'], MORDER=MON.map
 function stopPlay(){if(timer){clearInterval(timer);timer=null;document.getElementById('play').innerHTML=IC_PLAY;}}
 document.getElementById('play').onclick=()=>{if(timer){stopPlay();return;}document.getElementById('play').innerHTML=IC_PAUSE;const O=isMon(season)?MORDER:ORDER;let i=Math.max(0,O.indexOf(season));setSeason(O[i]);timer=setInterval(()=>{i=(i+1)%O.length;setSeason(O[i]);},1600);};
 function items(){return DATA.cities[region];}
+function iconTf(d,s){const p=xy(d.lon,d.lat),k=Math.max(s,.01)/24;return `translate(${p[0]-s/2},${p[1]-s*.9}) scale(${k})`;}
 function drawIcons(anim){
   const regs=items().slice().sort((a,b)=>b.n-a.n);
   const max=Math.max(1,season==='all'?regs[0].n:Math.max(...regs.flatMap(d=>(isMon(season)?MORDER:ORDER).map(se=>val(d,se)))));
   const sel=gIcons.selectAll('use').data(regs,d=>d.name+d.cc);
   sel.exit().remove();
-  sel.enter().append('use').attr('href','#mush').attr('class','mush').attr('width',0).attr('height',0)
+  sel.enter().append('use').attr('href','#mush').attr('class','mush').attr('width',24).attr('height',24).attr('transform',d=>iconTf(d,0)).style('display','none')
     .on('pointerenter pointermove',(e,d)=>{const r=box.getBoundingClientRect();tip.innerHTML=`<b>${d.name}</b>, ${cname(d)} · ${fmt(val(d,season))} sightings${season==='all'?'':' in '+sWord(season)}`;tip.style.left=(e.clientX-r.left+12)+'px';tip.style.top=(e.clientY-r.top-34)+'px';tip.style.opacity=1;})
     .on('pointerleave',()=>tip.style.opacity=0)
     .on('click',(e,d)=>pickCity(d,true));
   gIcons.selectAll('use').each(function(d){d._s=iconSize(val(d,season),max);}).classed('sel',d=>d===selCity)
     .style('opacity',d=>country&&d.cc!==country?.35:1);
-  const u=gIcons.selectAll('use').interrupt(); (anim?u.transition().duration(500):u).attr('width',d=>d._s).attr('height',d=>d._s).attr('x',d=>xy(d.lon,d.lat)[0]-d._s/2).attr('y',d=>xy(d.lon,d.lat)[1]-d._s*.9);
+  const u=gIcons.selectAll('use').interrupt().style('display',d=>d._s>0?null:'none'); (anim?u.transition().duration(500):u).attr('transform',d=>iconTf(d,d._s));
   const nice=v=>{const p=Math.pow(10,Math.floor(Math.log10(v)));return Math.round(v/p)*p;};
   const steps=[nice(max/100)||1,nice(max/10)||1,nice(max)];
   let html=steps.map(v=>{const s=iconSize(v,max);return `<div><svg width="${s}" height="${s}" viewBox="0 0 24 24"><use href="#mush"/></svg>${fmt(v)}</div>`}).join('')+`<span class="cap">Sightings around each big city<br><b>${SNAME[season]}</b></span>`;
@@ -720,7 +746,7 @@ function placeLabels(){
 }
 function place(){
   placeRain();
-  gIcons.selectAll('use').attr('x',d=>xy(d.lon,d.lat)[0]-d._s/2).attr('y',d=>xy(d.lon,d.lat)[1]-d._s*.9);
+  gIcons.selectAll('use').interrupt().attr('transform',d=>iconTf(d,d._s||0));
   placeLabels();
 }
 new ResizeObserver(()=>size()).observe(box);
